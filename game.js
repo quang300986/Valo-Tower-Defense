@@ -20,6 +20,12 @@ let gameOver = false;
 
 let selectedTower = null;
 let towers = [];
+let activeTower = null;
+
+const upgradeCosts = {
+    2: 100,
+    3: 200
+};
 let enemies = [];
 let projectiles = [];
 
@@ -390,6 +396,22 @@ function drawTowers() {
             ctx.lineWidth = 2;
             ctx.strokeRect(x-14, y-17, 28, 4);
         }
+        // Tower level decorations
+if (tower.level >= 2) {
+    ctx.strokeStyle = "#f4d17e";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.arc(x, y - 20, 29, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+if (tower.level >= 3) {
+    ctx.fillStyle = "#ffe69a";
+    ctx.font = "bold 15px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("★ ★ ★", x, y - 73);
+}
 
         ctx.restore();
     });
@@ -506,30 +528,59 @@ function placeTower(x, y) {
         return;
     }
 
-    // Keep towers away from the road
     for (let i = 0; i < path.length - 1; i++) {
         const a = path[i];
         const b = path[i + 1];
 
         const dx = b.x - a.x;
         const dy = b.y - a.y;
-
         const lengthSquared = dx * dx + dy * dy;
 
-        let t = (
-            (x - a.x) * dx + (y - a.y) * dy
-        ) / lengthSquared;
-
+        let t = ((x-a.x)*dx + (y-a.y)*dy) / lengthSquared;
         t = Math.max(0, Math.min(1, t));
 
-        const nearestX = a.x + t * dx;
-        const nearestY = a.y + t * dy;
+        const nx = a.x + t * dx;
+        const ny = a.y + t * dy;
 
-        if (Math.hypot(x - nearestX, y - nearestY) < 65) {
+        if (Math.hypot(x-nx, y-ny) < 65) {
             showMessage("You cannot build on the road!");
             return;
         }
     }
+
+    for (const tower of towers) {
+        if (Math.hypot(x-tower.x, y-tower.y) < 55) {
+            showMessage("Too close to another tower!");
+            return;
+        }
+    }
+
+    gold -= type.cost;
+
+    const tower = {
+        x,
+        y,
+        name: type.name,
+        icon: type.icon,
+        level: 1,
+        invested: type.cost,
+        range: type.range,
+        damage: type.damage,
+        cooldown: type.cooldown,
+        timer: 0
+    };
+
+    towers.push(tower);
+    selectedTower = null;
+
+    document.querySelectorAll(".tower-card").forEach(card => {
+        card.style.borderColor = "#a98242";
+    });
+
+    updateUI();
+    showMessage(type.name + " Tower built!");
+    selectTower(tower);
+}
 
     // Keep towers separated
     for (const tower of towers) {
@@ -754,7 +805,23 @@ canvas.addEventListener("click", event => {
     const y = (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
-    placeTower(x, y);
+    // Check whether an existing tower was clicked
+    const clickedTower = [...towers].reverse().find(tower =>
+        Math.hypot(x - tower.x, y - tower.y) < 27
+    );
+
+    if (clickedTower) {
+        selectTower(clickedTower);
+        return;
+    }
+
+    if (selectedTower) {
+        placeTower(x, y);
+    } else {
+        activeTower = null;
+        towerPanel.hidden = true;
+        showMessage("Choose a tower or select a tower to upgrade!");
+    }
 });
 
 // BUTTON EVENTS
@@ -777,7 +844,125 @@ speedButton.addEventListener("click", () => {
 
     speedButton.textContent = "⏩ SPEED x" + speed;
 });
+// TOWER PANEL
 
+const towerPanel = document.getElementById("towerPanel");
+const towerTitle = document.getElementById("towerTitle");
+const towerLevel = document.getElementById("towerLevel");
+const towerDamage = document.getElementById("towerDamage");
+const towerRange = document.getElementById("towerRange");
+const towerSpeed = document.getElementById("towerSpeed");
+const upgradeButton = document.getElementById("upgradeTower");
+const sellButton = document.getElementById("sellTower");
+const closeButton = document.getElementById("closeTower");
+const upgradeInfo = document.getElementById("towerUpgradeInfo");
+
+function selectTower(tower) {
+    activeTower = tower;
+    selectedTower = null;
+
+    towerPanel.hidden = false;
+    updateTowerPanel();
+
+    showMessage(tower.name + " selected!");
+}
+
+function updateTowerPanel() {
+    if (!activeTower) return;
+
+    const tower = activeTower;
+    const cost = upgradeCosts[tower.level + 1];
+
+    towerTitle.textContent = tower.icon + " " + tower.name;
+    towerLevel.textContent = "LEVEL " + tower.level;
+
+    towerDamage.textContent = tower.damage;
+    towerRange.textContent = tower.range;
+    towerSpeed.textContent = tower.cooldown.toFixed(2) + "s";
+
+    if (tower.level >= 3) {
+        upgradeButton.disabled = true;
+        upgradeButton.textContent = "MAX LEVEL";
+        upgradeInfo.textContent = "Maximum level reached!";
+    } else {
+        upgradeButton.disabled = gold < cost;
+        upgradeButton.textContent = "⬆ UPGRADE - " + cost + " GOLD";
+
+        upgradeInfo.textContent =
+            "Next level: more damage, range and attack speed.";
+    }
+}
+
+function upgradeSelectedTower() {
+    if (!activeTower || activeTower.level >= 3) return;
+
+    const tower = activeTower;
+    const nextLevel = tower.level + 1;
+    const cost = upgradeCosts[nextLevel];
+
+    if (gold < cost) {
+        showMessage("Not enough gold!");
+        return;
+    }
+
+    gold -= cost;
+    tower.invested += cost;
+    tower.level = nextLevel;
+
+    if (nextLevel === 2) {
+        tower.damage = Math.round(tower.damage * 1.6);
+        tower.range = Math.round(tower.range * 1.15);
+        tower.cooldown *= 0.8;
+    }
+
+    if (nextLevel === 3) {
+        tower.damage = Math.round(tower.damage * 1.5625);
+        tower.range = Math.round(tower.range * 1.2);
+        tower.cooldown *= 0.75;
+    }
+
+    updateUI();
+    updateTowerPanel();
+
+    showMessage(tower.name + " upgraded to Level " + nextLevel + "!");
+}
+
+function sellSelectedTower() {
+    if (!activeTower) return;
+
+    const refund = Math.floor(activeTower.invested * 0.7);
+
+    towers = towers.filter(tower => tower !== activeTower);
+
+    gold += refund;
+
+    activeTower = null;
+    towerPanel.hidden = true;
+
+    updateUI();
+
+    showMessage("Tower sold! +" + refund + " gold");
+}
+
+upgradeButton.addEventListener("click", upgradeSelectedTower);
+
+sellButton.addEventListener("click", sellSelectedTower);
+
+closeButton.addEventListener("click", () => {
+    activeTower = null;
+    towerPanel.hidden = true;
+});
+
+// Refresh upgrade button when gold changes
+const originalUpdateUI = updateUI;
+
+updateUI = function() {
+    originalUpdateUI();
+
+    if (activeTower) {
+        updateTowerPanel();
+    }
+};
 // INITIALIZE
 
 updateUI();
