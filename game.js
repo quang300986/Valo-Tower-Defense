@@ -1,7 +1,9 @@
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
+// TOWER IMAGES
+const cannonImage = new Image();
+cannonImage.src = "assets/cannon_tower.png";
 const goldDisplay = document.getElementById("gold");
 const livesDisplay = document.getElementById("lives");
 const waveDisplay = document.getElementById("wave");
@@ -429,73 +431,18 @@ function drawTowers() {
             ctx.stroke();
         }
 
-        // CANNON TOWER
-        else if (tower.name === "Cannon") {
-
-            // Stone tower body
-            const wall = ctx.createLinearGradient(x - 18, y - 45, x + 18, y);
-            wall.addColorStop(0, "#c5d0d5");
-            wall.addColorStop(0.5, "#697982");
-            wall.addColorStop(1, "#303c46");
-
-            ctx.fillStyle = wall;
-            ctx.fillRect(x - 18, y - 38, 36, 34);
-
-            ctx.strokeStyle = "#dce5e7";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x - 18, y - 38, 36, 34);
-
-            // Battlements
-            ctx.fillStyle = "#aebdc2";
-
-            for (let i = -18; i <= 12; i += 15) {
-                ctx.fillRect(x + i, y - 46, 10, 10);
-            }
-
-            // Cannon base
-            const base = ctx.createRadialGradient(x - 4, y - 35, 2, x, y - 35, 16);
-            base.addColorStop(0, "#e8bd70");
-            base.addColorStop(0.6, "#98602d");
-            base.addColorStop(1, "#38291e");
-
-            ctx.fillStyle = base;
-            ctx.beginPath();
-            ctx.arc(x, y - 31, 14, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = "#e9c47d";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Cannon barrel
-            const bronze = ctx.createLinearGradient(x - 10, y - 50, x + 10, y - 30);
-            bronze.addColorStop(0, "#5a3921");
-            bronze.addColorStop(0.5, "#edc16c");
-            bronze.addColorStop(1, "#69401e");
-
-            ctx.save();
-            ctx.translate(x, y - 40);
-            ctx.rotate(-Math.PI / 4);
-
-            ctx.fillStyle = bronze;
-            ctx.fillRect(-7, -20, 14, 30);
-
-            ctx.fillStyle = "#33251d";
-            ctx.beginPath();
-            ctx.arc(0, -20, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = "#f2d18a";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.restore();
-
-            // Golden decoration
-            ctx.strokeStyle = "#f4ce79";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x - 14, y - 17, 28, 4);
-        }
+// CANNON TOWER - 3D IMAGE
+else if (tower.name === "Cannon") {
+    if (cannonImage.complete && cannonImage.naturalWidth > 0) {
+        ctx.drawImage(
+            cannonImage,
+            x - 56,
+            y - 102,
+            112,
+            124
+        );
+    }
+}
 
         // LEVEL 2: Golden ring
         if (tower.level >= 2) {
