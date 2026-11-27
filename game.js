@@ -1,6 +1,14 @@
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+let mouseX = 0;
+let mouseY = 0;
+canvas.addEventListener("mousemove", event => {
+    const rect = canvas.getBoundingClientRect();
+
+    mouseX = (event.clientX - rect.left) * canvas.width / rect.width;
+    mouseY = (event.clientY - rect.top) * canvas.height / rect.height;
+});
 // TOWER IMAGES
 const cannonImage = new Image();
 cannonImage.src = "assets/cannon_tower.png";
@@ -629,6 +637,29 @@ function drawRangeCircle(x, y, range, color = "rgba(80, 200, 255, 0.18)") {
 function drawGame() {
     drawBackground();
     drawBuildGrid();
+
+    // Range của tháp đang được chọn
+    if (activeTower && towers.includes(activeTower)) {
+        drawRangeCircle(
+            activeTower.x,
+            activeTower.y,
+            activeTower.range
+        );
+    }
+
+    // Range khi chuẩn bị xây tháp
+    if (selectedTower && mouseX !== undefined && mouseY !== undefined) {
+        const type = towerTypes[selectedTower];
+        const cell = getGridCenter(mouseX, mouseY);
+
+        drawRangeCircle(
+            cell.x,
+            cell.y,
+            type.range,
+            "rgba(80, 255, 130, 0.13)"
+        );
+    }
+
     drawTowers();
     drawEnemies();
     drawProjectiles();
