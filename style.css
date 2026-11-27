@@ -257,3 +257,109 @@ body {
         min-width: 42%;
     }
 }
+/* TOWER UPGRADE PANEL */
+
+.tower-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #253e2c, #17271d);
+    border: 2px solid #c49a50;
+    border-radius: 12px;
+}
+
+.tower-panel[hidden] {
+    display: none;
+}
+
+.tower-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.tower-panel-header h2 {
+    color: #f0cf83;
+}
+
+#towerLevel {
+    color: #e8c477;
+    background: #574023;
+    padding: 8px 13px;
+    border-radius: 7px;
+    font-weight: bold;
+}
+
+.tower-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.tower-stats div {
+    padding: 13px 8px;
+    text-align: center;
+    background: #101f17;
+    border: 1px solid #80653c;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.tower-stats strong {
+    color: #f4d17e;
+}
+
+.tower-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.tower-actions button {
+    flex: 1;
+    padding: 13px 8px;
+    border: 1px solid #d5b36c;
+    border-radius: 8px;
+    color: white;
+    background: #79552a;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#upgradeTower {
+    background: #326b42;
+}
+
+#sellTower {
+    background: #81512c;
+}
+
+#closeTower {
+    background: #48534b;
+}
+
+.tower-actions button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#towerUpgradeInfo {
+    margin-top: 14px;
+    color: #d7c69f;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .tower-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .tower-actions {
+        flex-wrap: wrap;
+    }
+
+    .tower-actions button {
+        min-width: 40%;
+    }
+}
