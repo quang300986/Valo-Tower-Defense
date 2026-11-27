@@ -678,38 +678,6 @@ function placeTower(x, y) {
 
     updateUI();
     showMessage(type.name + " Tower built!");
-    selectTower(tower);
-}
-
-    // Keep towers separated
-    for (const tower of towers) {
-        if (Math.hypot(x - tower.x, y - tower.y) < 55) {
-            showMessage("Too close to another tower!");
-            return;
-        }
-    }
-
-    gold -= type.cost;
-
-    towers.push({
-        x,
-        y,
-        name: type.name,
-        icon: type.icon,
-        range: type.range,
-        damage: type.damage,
-        cooldown: type.cooldown,
-        timer: 0
-    });
-
-    selectedTower = null;
-
-    document.querySelectorAll(".tower-card").forEach(card => {
-        card.style.borderColor = "#a98242";
-    });
-
-    updateUI();
-    showMessage(type.name + " Tower built!");
 }
 
 // TOWER SHOOTING
