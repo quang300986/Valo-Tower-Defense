@@ -42,6 +42,8 @@ let projectiles = [];
 let waveRemaining = 0;
 let spawnTimer = 0;
 let waveActive = false;
+let waveCountdown = null;
+let lastCountdownDisplay = null;
 
 const towerTypes = {
     archer: {
@@ -730,6 +732,10 @@ function createEnemy() {
 function startWave() {
     if (gameOver || waveActive) return;
 
+    // Cancel the automatic countdown if the player starts the wave manually.
+    waveCountdown = null;
+    lastCountdownDisplay = null;
+
     wave++;
     waveRemaining = 5 + wave * 2;
     spawnTimer = 0;
@@ -886,6 +892,25 @@ function updateProjectiles(dt) {
 // GAME UPDATE
 
 function updateGame(dt) {
+    // Start the next wave automatically after the 10-second countdown.
+    if (!waveActive && waveCountdown !== null) {
+        waveCountdown -= dt;
+
+        if (waveCountdown <= 0) {
+            startWave();
+        } else {
+            const secondsLeft = Math.ceil(waveCountdown);
+
+            if (secondsLeft !== lastCountdownDisplay) {
+                lastCountdownDisplay = secondsLeft;
+                showMessage(
+                    "Next wave in " + secondsLeft +
+                    "s — press START WAVE to begin now!"
+                );
+            }
+        }
+    }
+
     if (waveActive && waveRemaining > 0) {
         spawnTimer -= dt;
 
@@ -931,14 +956,20 @@ function updateGame(dt) {
     ) {
         waveActive = false;
         gold += 50;
+        waveCountdown = 10;
+        lastCountdownDisplay = 10;
         updateUI();
-        showMessage("Wave completed! Bonus: 50 gold!");
+        showMessage(
+            "Wave completed! +50 gold. Next wave in 10s — press START WAVE to begin now!"
+        );
     }
 
     if (lives <= 0) {
         lives = 0;
         gameOver = true;
         waveActive = false;
+        waveCountdown = null;
+        lastCountdownDisplay = null;
         updateUI();
         showMessage("GAME OVER! Your kingdom has fallen.");
     }
