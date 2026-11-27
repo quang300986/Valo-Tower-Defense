@@ -185,30 +185,216 @@ function drawEnemies() {
 
 // DRAW TOWERS
 
+
 function drawTowers() {
     towers.forEach(tower => {
+        const x = tower.x;
+        const y = tower.y;
+
+        ctx.save();
+
+        // Shadow
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
         ctx.beginPath();
-        ctx.arc(tower.x, tower.y, 22, 0, Math.PI * 2);
-        ctx.fillStyle = "#60452d";
+        ctx.ellipse(x, y + 15, 27, 11, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = "#e7c477";
+        // Stone foundation
+        const stone = ctx.createLinearGradient(x-20, y-15, x+20, y+20);
+        stone.addColorStop(0, "#d0bd96");
+        stone.addColorStop(0.5, "#89785e");
+        stone.addColorStop(1, "#514432");
+
+        ctx.fillStyle = stone;
+        ctx.beginPath();
+        ctx.roundRect(x-23, y-12, 46, 34, 5);
+        ctx.fill();
+
+        // Foundation border
+        ctx.strokeStyle = "#e6ce9b";
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        ctx.font = "27px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(tower.icon, tower.x, tower.y + 9);
+        // Stone details
+        ctx.strokeStyle = "#66553d";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x-20, y+1);
+        ctx.lineTo(x+20, y+1);
+        ctx.moveTo(x-20, y+11);
+        ctx.lineTo(x+20, y+11);
+        ctx.stroke();
 
-        // Selected tower range
-        if (tower === towers[towers.length - 1] &&
-            selectedTower === null) {
-            // No range shown by default
+        // ARCHER TOWER
+        if (tower.name === "Archer") {
+
+            // Wooden tower
+            ctx.fillStyle = "#79502e";
+            ctx.fillRect(x-15, y-35, 30, 30);
+
+            ctx.fillStyle = "#b17a43";
+            ctx.fillRect(x-19, y-40, 38, 9);
+
+            // Roof
+            ctx.fillStyle = "#a34d32";
+            ctx.beginPath();
+            ctx.moveTo(x-23, y-39);
+            ctx.lineTo(x, y-65);
+            ctx.lineTo(x+23, y-39);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "#e6b56c";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Wooden window
+            ctx.fillStyle = "#251b13";
+            ctx.fillRect(x-5, y-29, 10, 15);
+
+            // Arrow
+            ctx.strokeStyle = "#f4d18b";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y-51);
+            ctx.lineTo(x+13, y-51);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x+10, y-55);
+            ctx.lineTo(x+15, y-51);
+            ctx.lineTo(x+10, y-47);
+            ctx.stroke();
+
+            // Green flag
+            ctx.strokeStyle = "#d9c18c";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x+14, y-43);
+            ctx.lineTo(x+14, y-63);
+            ctx.stroke();
+
+            ctx.fillStyle = "#3e9b55";
+            ctx.beginPath();
+            ctx.moveTo(x+15, y-63);
+            ctx.lineTo(x+31, y-57);
+            ctx.lineTo(x+15, y-51);
+            ctx.closePath();
+            ctx.fill();
         }
-    });
 
-    ctx.textAlign = "left";
+        // MAGE TOWER
+        else if (tower.name === "Mage") {
+
+            // Purple tower body
+            const magic = ctx.createLinearGradient(
+                x-15, y-55, x+15, y-5
+            );
+
+            magic.addColorStop(0, "#b28ae6");
+            magic.addColorStop(0.5, "#6842a1");
+            magic.addColorStop(1, "#33204f");
+
+            ctx.fillStyle = magic;
+            ctx.beginPath();
+            ctx.moveTo(x-15, y-7);
+            ctx.lineTo(x-12, y-45);
+            ctx.lineTo(x+12, y-45);
+            ctx.lineTo(x+15, y-7);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "#d6b2ff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Tower roof
+            ctx.fillStyle = "#472a75";
+            ctx.beginPath();
+            ctx.moveTo(x-21, y-43);
+            ctx.lineTo(x, y-66);
+            ctx.lineTo(x+21, y-43);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "#c5a1ff";
+            ctx.stroke();
+
+            // Glowing crystal
+            ctx.shadowColor = "#c18aff";
+            ctx.shadowBlur = 20;
+
+            ctx.fillStyle = "#e1c4ff";
+            ctx.beginPath();
+            ctx.moveTo(x, y-57);
+            ctx.lineTo(x+8, y-45);
+            ctx.lineTo(x, y-34);
+            ctx.lineTo(x-8, y-45);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Magic windows
+            ctx.fillStyle = "#b5e7ff";
+            ctx.fillRect(x-9, y-27, 5, 9);
+            ctx.fillRect(x+4, y-27, 5, 9);
+        }
+
+        // CANNON TOWER
+        else if (tower.name === "Cannon") {
+
+            // Stone tower
+            ctx.fillStyle = "#747d83";
+            ctx.fillRect(x-18, y-38, 36, 34);
+
+            ctx.strokeStyle = "#d5d9d7";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x-18, y-38, 36, 34);
+
+            // Battlements
+            ctx.fillStyle = "#9ca4a7";
+
+            for (let i = -18; i <= 12; i += 15) {
+                ctx.fillRect(x+i, y-46, 10, 10);
+            }
+
+            // Cannon base
+            ctx.fillStyle = "#754522";
+            ctx.beginPath();
+            ctx.arc(x, y-31, 13, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cannon barrel
+            const bronze = ctx.createLinearGradient(
+                x-10, y-45, x+10, y-45
+            );
+
+            bronze.addColorStop(0, "#674322");
+            bronze.addColorStop(0.5, "#e5b35b");
+            bronze.addColorStop(1, "#664021");
+
+            ctx.fillStyle = bronze;
+            ctx.save();
+            ctx.translate(x, y-39);
+            ctx.rotate(-Math.PI/4);
+            ctx.fillRect(-6, -19, 12, 28);
+            ctx.fillStyle = "#36291e";
+            ctx.beginPath();
+            ctx.arc(0, -19, 6, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+
+            // Golden decoration
+            ctx.strokeStyle = "#e9c16e";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x-14, y-17, 28, 4);
+        }
+
+        ctx.restore();
+    });
 }
+
 
 // DRAW PROJECTILES
 
