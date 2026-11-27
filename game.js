@@ -647,13 +647,7 @@ function placeTower(x, y) {
         }
     }
 
-    for (const tower of towers) {
-        if (Math.hypot(x-tower.x, y-tower.y) < 55) {
-            showMessage("Too close to another tower!");
-            return;
-        }
-    }
-
+    
     gold -= type.cost;
 
     const tower = {
