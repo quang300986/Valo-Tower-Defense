@@ -436,10 +436,10 @@ else if (tower.name === "Cannon") {
     if (cannonImage.complete && cannonImage.naturalWidth > 0) {
         ctx.drawImage(
             cannonImage,
-            x - 56,
-            y - 102,
-            112,
-            124
+            x - 27,
+            y - 48,
+            54,
+            60
         );
     }
 }
