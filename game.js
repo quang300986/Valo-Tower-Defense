@@ -39,9 +39,8 @@ const upgradeCosts = {
 let enemies = [];
 let projectiles = [];
 
-let waveRemaining = 0;
-let spawnTimer = 0;
-let waveActive = false;
+// Up to 3 waves can be active at the same time.
+let activeWaves = [];
 let waveCountdown = null;
 let lastCountdownDisplay = null;
 
@@ -712,15 +711,16 @@ function moveEnemy(enemy, dt) {
 
 // CREATE ENEMY
 
-function createEnemy() {
-    const hp = 60 + wave * 20;
+function createEnemy(waveNumber) {
+    const hp = 60 + waveNumber * 20;
 
     enemies.push({
         x: path[0].x,
         y: path[0].y,
         hp: hp,
         maxHp: hp,
-        speed: 55 + Math.min(wave * 2, 30),
+        speed: 55 + Math.min(waveNumber * 2, 30),
+        waveNumber: waveNumber,
         segment: 0,
         reachedEnd: false,
         progress: 0
@@ -730,20 +730,25 @@ function createEnemy() {
 // START WAVE
 
 function startWave() {
-    if (gameOver || waveActive) return;
+    if (gameOver) return;
 
-    // Cancel the automatic countdown if the player starts the wave manually.
+    if (activeWaves.length >= 3) {
+        showMessage("Maximum 3 active waves! Wait until one is completed.");
+        return;
+    }
+
+    // Cancel the automatic countdown if the player starts a wave manually.
     waveCountdown = null;
     lastCountdownDisplay = null;
 
     wave++;
-    waveRemaining = 5 + wave * 2;
-    spawnTimer = 0;
+    activeWaves.push({
+        number: wave,
+        remaining: 5 + wave * 2,
+        spawnTimer: 0
+    });
 
-    waveActive = true;
-
-    showMessage("Wave " + wave + " is coming!");
-
+    showMessage("Wave " + wave + " is coming! Active waves: " + activeWaves.length + "/3");
     updateUI();
 }
 
@@ -893,33 +898,40 @@ function updateProjectiles(dt) {
 
 function updateGame(dt) {
     // Start the next wave automatically after the 10-second countdown.
-    if (!waveActive && waveCountdown !== null) {
-        waveCountdown -= dt;
-
-        if (waveCountdown <= 0) {
-            startWave();
+    // If 3 waves are already active, wait until a slot becomes available.
+    if (waveCountdown !== null) {
+        if (activeWaves.length >= 3) {
+            showMessage("3 waves active — waiting for one to finish...");
         } else {
-            const secondsLeft = Math.ceil(waveCountdown);
+            waveCountdown -= dt;
 
-            if (secondsLeft !== lastCountdownDisplay) {
-                lastCountdownDisplay = secondsLeft;
-                showMessage(
-                    "Next wave in " + secondsLeft +
-                    "s — press START WAVE to begin now!"
-                );
+            if (waveCountdown <= 0) {
+                startWave();
+            } else {
+                const secondsLeft = Math.ceil(waveCountdown);
+                if (secondsLeft !== lastCountdownDisplay) {
+                    lastCountdownDisplay = secondsLeft;
+                    showMessage(
+                        "Next wave in " + secondsLeft +
+                        "s — press START WAVE to begin now! (" +
+                        activeWaves.length + "/3 active)"
+                    );
+                }
             }
         }
     }
 
-    if (waveActive && waveRemaining > 0) {
-        spawnTimer -= dt;
-
-        if (spawnTimer <= 0) {
-            createEnemy();
-            waveRemaining--;
-            spawnTimer = 1.2;
+    // Spawn enemies independently for every active wave.
+    activeWaves.forEach(waveState => {
+        if (waveState.remaining > 0) {
+            waveState.spawnTimer -= dt;
+            if (waveState.spawnTimer <= 0) {
+                createEnemy(waveState.number);
+                waveState.remaining--;
+                waveState.spawnTimer = 1.2;
+            }
         }
-    }
+    });
 
     enemies.forEach(enemy => {
         if (!enemy.reachedEnd) {
@@ -948,26 +960,36 @@ function updateGame(dt) {
     updateTowers(dt);
     updateProjectiles(dt);
 
-    // End of wave
-    if (
-        waveActive &&
-        waveRemaining === 0 &&
-        enemies.length === 0
-    ) {
-        waveActive = false;
-        gold += 50;
-        waveCountdown = 10;
-        lastCountdownDisplay = 10;
-        updateUI();
-        showMessage(
-            "Wave completed! +50 gold. Next wave in 10s — press START WAVE to begin now!"
+    // Complete each wave separately after all its enemies are defeated.
+    const completedWaves = activeWaves.filter(waveState =>
+        waveState.remaining === 0 &&
+        !enemies.some(enemy => enemy.waveNumber === waveState.number)
+    );
+
+    if (completedWaves.length > 0) {
+        completedWaves.forEach(waveState => {
+            gold += 50;
+            showMessage("Wave " + waveState.number + " completed! +50 gold.");
+        });
+
+        const completedNumbers = completedWaves.map(waveState => waveState.number);
+        activeWaves = activeWaves.filter(waveState =>
+            !completedNumbers.includes(waveState.number)
         );
+
+        // Start one 10-second countdown when the first slot opens.
+        if (waveCountdown === null && !gameOver) {
+            waveCountdown = 10;
+            lastCountdownDisplay = 10;
+        }
+
+        updateUI();
     }
 
     if (lives <= 0) {
         lives = 0;
         gameOver = true;
-        waveActive = false;
+        activeWaves = [];
         waveCountdown = null;
         lastCountdownDisplay = null;
         updateUI();
