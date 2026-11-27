@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#14251d">
+
+    <title>Valo Tower Defense</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+</head>
+
+<body>
+
+    <div class="game-container">
+
+        <!-- GAME HEADER -->
+        <header class="game-header">
+            <div class="logo">
+                <span>⚔️</span>
+                <div>
+                    <h1>VALO</h1>
+                    <p>TOWER DEFENSE</p>
+                </div>
+            </div>
+
+            <div class="game-info">
+                <div class="info-item">
+                    <span>🪙</span>
+                    <span id="gold">300</span>
+                </div>
+
+                <div class="info-item">
+                    <span>❤️</span>
+                    <span id="lives">20</span>
+                </div>
+
+                <div class="info-item">
+                    <span>🌊</span>
+                    <span id="wave">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- GAME AREA -->
+        <main class="game-main">
+
+            <div class="map-header">
+                <div>
+                    <h2>🌲 Enchanted Forest</h2>
+                    <p>Defend your kingdom!</p>
+                </div>
+
+                <div class="level-info">
+                    LEVEL 01
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"
+                        width="900"
+                        height="550">
+                    Your browser does not support Canvas.
+                </canvas>
+            </div>
+
+            <!-- TOWER SHOP -->
+            <section class="tower-shop">
+
+                <h2>🏰 Choose Your Tower</h2>
+
+                <div class="tower-list">
+
+                    <button class="tower-card"
+                            data-tower="archer">
+                        <span class="tower-icon">🏹</span>
+                        <strong>Archer</strong>
+                        <span>🪙 100</span>
+                    </button>
+
+                    <button class="tower-card"
+                            data-tower="mage">
+                        <span class="tower-icon">🔮</span>
+                        <strong>Mage</strong>
+                        <span>🪙 150</span>
+                    </button>
+
+                    <button class="tower-card"
+                            data-tower="cannon">
+                        <span class="tower-icon">💣</span>
+                        <strong>Cannon</strong>
+                        <span>🪙 200</span>
+                    </button>
+
+                </div>
+            </section>
+
+            <!-- GAME CONTROLS -->
+            <section class="game-controls">
+
+                <button id="startWave">
+                    ⚔️ START WAVE
+                </button>
+
+                <button id="pauseGame">
+                    ⏸ PAUSE
+                </button>
+
+                <button id="speedGame">
+                    ⏩ SPEED x1
+                </button>
+
+            </section>
+
+            <!-- MESSAGE -->
+            <div id="gameMessage">
+                Welcome to Valo Tower Defense!
+            </div>
+
+        </main>
+
+        <footer class="game-footer">
+            VALO TOWER DEFENSE © 2026
+        </footer>
+
+    </div>
+
+</body>
+</html>
