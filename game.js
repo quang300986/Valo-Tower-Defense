@@ -75,6 +75,63 @@ const path = [
     { x: 900, y: 410 }
 ];
 
+// GRID BUILDING SYSTEM
+const GRID_SIZE = 50;
+const GRID_COLS = 18;
+const GRID_ROWS = 11;
+
+function getGridCenter(x, y) {
+    return {
+        x: Math.floor(x / GRID_SIZE) * GRID_SIZE + GRID_SIZE / 2,
+        y: Math.floor(y / GRID_SIZE) * GRID_SIZE + GRID_SIZE / 2
+    };
+}
+
+// Check distance from a cell to the enemy road
+function distanceToRoad(x, y) {
+    let minDistance = Infinity;
+
+    for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i];
+        const b = path[i + 1];
+
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+
+        const lengthSquared = dx * dx + dy * dy;
+
+        let t = ((x-a.x)*dx + (y-a.y)*dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+
+        const nearestX = a.x + t * dx;
+        const nearestY = a.y + t * dy;
+
+        const distance = Math.hypot(
+            x-nearestX,
+            y-nearestY
+        );
+
+        minDistance = Math.min(minDistance, distance);
+    }
+
+    return minDistance;
+}
+
+function isBuildableCell(x, y) {
+    if (x < 25 || y < 25 ||
+        x > 875 || y > 525) return false;
+
+    if (distanceToRoad(x, y) < 65) return false;
+
+    for (const tower of towers) {
+        if (Math.hypot(x-tower.x, y-tower.y) < 45) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function updateUI() {
     goldDisplay.textContent = gold;
     livesDisplay.textContent = lives;
@@ -431,12 +488,54 @@ function drawProjectiles() {
 
 // DRAW GAME
 
+
+function drawBuildGrid() {
+    if (!selectedTower) return;
+
+    for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+
+            const x = col * GRID_SIZE + 25;
+            const y = row * GRID_SIZE + 25;
+
+            if (!isBuildableCell(x, y)) continue;
+
+            ctx.fillStyle = "rgba(100, 255, 120, 0.13)";
+            ctx.fillRect(
+                col * GRID_SIZE,
+                row * GRID_SIZE,
+                GRID_SIZE,
+                GRID_SIZE
+            );
+
+            ctx.strokeStyle = "rgba(180, 255, 180, 0.65)";
+            ctx.lineWidth = 2;
+
+            ctx.strokeRect(
+                col * GRID_SIZE + 2,
+                row * GRID_SIZE + 2,
+                GRID_SIZE - 4,
+                GRID_SIZE - 4
+            );
+
+            ctx.fillStyle = "#baffae";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("+", x, y + 7);
+        }
+    }
+
+    ctx.textAlign = "left";
+}
+
 function drawGame() {
     drawBackground();
+    drawBuildGrid();
     drawTowers();
     drawEnemies();
     drawProjectiles();
 }
+
 
 // PATH MOVEMENT
 
@@ -794,6 +893,7 @@ document.querySelectorAll(".tower-card").forEach(card => {
 
 // CLICK CANVAS TO BUILD
 
+
 canvas.addEventListener("click", event => {
     if (paused || gameOver) return;
 
@@ -805,7 +905,7 @@ canvas.addEventListener("click", event => {
     const y = (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
-    // Check whether an existing tower was clicked
+    // Select existing tower
     const clickedTower = [...towers].reverse().find(tower =>
         Math.hypot(x - tower.x, y - tower.y) < 27
     );
@@ -815,13 +915,22 @@ canvas.addEventListener("click", event => {
         return;
     }
 
+    // Build on grid
     if (selectedTower) {
-        placeTower(x, y);
-    } else {
-        activeTower = null;
-        towerPanel.hidden = true;
-        showMessage("Choose a tower or select a tower to upgrade!");
+        const cell = getGridCenter(x, y);
+
+        if (!isBuildableCell(cell.x, cell.y)) {
+            showMessage("This building spot is unavailable!");
+            return;
+        }
+
+        placeTower(cell.x, cell.y);
+        return;
     }
+
+    activeTower = null;
+    towerPanel.hidden = true;
+    showMessage("Choose a tower or select an existing tower!");
 });
 
 // BUTTON EVENTS
