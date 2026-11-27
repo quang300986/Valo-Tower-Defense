@@ -526,14 +526,98 @@ function drawBuildGrid() {
     ctx.textAlign = "left";
 }
 
+function getTowerPopupRect(tower) {
+    const width = 210;
+    const height = 82;
+
+    return {
+        x: Math.max(5, Math.min(685, tower.x - width / 2)),
+        y: Math.max(5, tower.y - 112),
+        width,
+        height
+    };
+}
+
+function drawTowerPopup() {
+    if (!activeTower || !towers.includes(activeTower)) return;
+
+    const r = getTowerPopupRect(activeTower);
+
+    // Popup shadow
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 12;
+
+    // Background
+    ctx.fillStyle = "#263b35";
+    ctx.beginPath();
+    ctx.roundRect(r.x, r.y, r.width, r.height, 9);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    // Border
+    ctx.strokeStyle = "#e7c477";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Title
+    ctx.fillStyle = "#ffe4a0";
+    ctx.font = "bold 14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        activeTower.name + " - LV." + activeTower.level,
+        r.x + 105,
+        r.y + 23
+    );
+
+    // Upgrade button
+    const cost = upgradeCosts[activeTower.level + 1];
+    const canUpgrade = activeTower.level < 3 && gold >= cost;
+
+    ctx.fillStyle = canUpgrade ? "#387b45" : "#59615a";
+    ctx.beginPath();
+    ctx.roundRect(r.x + 8, r.y + 37, 100, 34, 6);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px Arial";
+    ctx.fillText(
+        activeTower.level >= 3 ? "MAX LEVEL" : "UPGRADE " + cost,
+        r.x + 58,
+        r.y + 58
+    );
+
+    // Sell button
+    ctx.fillStyle = "#a34a37";
+    ctx.beginPath();
+    ctx.roundRect(r.x + 114, r.y + 37, 48, 34, 6);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("SELL", r.x + 138, r.y + 58);
+
+    // Close button
+    ctx.fillStyle = "#59636c";
+    ctx.beginPath();
+    ctx.roundRect(r.x + 168, r.y + 37, 34, 34, 6);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 16px Arial";
+    ctx.fillText("X", r.x + 185, r.y + 59);
+
+    ctx.restore();
+}
+
 function drawGame() {
     drawBackground();
     drawBuildGrid();
     drawTowers();
     drawEnemies();
     drawProjectiles();
+    drawTowerPopup();
 }
-
 
 // PATH MOVEMENT
 
@@ -865,6 +949,31 @@ canvas.addEventListener("click", event => {
     const y = (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
+    // Handle floating tower popup buttons
+    if (activeTower && towers.includes(activeTower)) {
+        const r = getTowerPopupRect(activeTower);
+
+        if (
+            x >= r.x && x <= r.x + r.width &&
+            y >= r.y && y <= r.y + r.height
+        ) {
+            if (y >= r.y + 37 && y <= r.y + 71) {
+
+                if (x >= r.x + 8 && x <= r.x + 108) {
+                    upgradeSelectedTower();
+                }
+                else if (x >= r.x + 114 && x <= r.x + 162) {
+                    sellSelectedTower();
+                }
+                else if (x >= r.x + 168 && x <= r.x + 202) {
+                    activeTower = null;
+                }
+            }
+
+            return;
+        }
+    }
+
     // Select existing tower
     const clickedTower = [...towers].reverse().find(tower =>
         Math.hypot(x - tower.x, y - tower.y) < 27
@@ -930,12 +1039,10 @@ function selectTower(tower) {
     activeTower = tower;
     selectedTower = null;
 
-    towerPanel.hidden = false;
-    updateTowerPanel();
+    towerPanel.hidden = true;
 
     showMessage(tower.name + " selected!");
 }
-
 function updateTowerPanel() {
     if (!activeTower) return;
 
