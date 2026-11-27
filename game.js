@@ -609,7 +609,23 @@ function drawTowerPopup() {
 
     ctx.restore();
 }
+function drawRangeCircle(x, y, range, color = "rgba(80, 200, 255, 0.18)") {
+    ctx.save();
 
+    ctx.beginPath();
+    ctx.arc(x, y, range, 0, Math.PI * 2);
+
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(100, 210, 255, 0.8)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 5]);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.restore();
+}
 function drawGame() {
     drawBackground();
     drawBuildGrid();
